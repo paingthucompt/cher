@@ -18,6 +18,8 @@ Help the project owner finish episodes safely by managing:
 4. Canon and continuity warnings
 5. Final assembly and export QA
 6. Downloadable production documents
+7. Writing and completing all remaining episodes
+8. Final video preparation for every completed episode
 
 ### Seed project data
 
@@ -92,6 +94,42 @@ Brand asset: `BRAND001` SocialAutoUpload End Card
    - Allow an accepted exception for the existing `720x1280` file, but keep the resolution warning visible until the user resolves or accepts it.
    - Provide a final QA report preview and Download QA Report button.
 
+7. **Episode Writer**
+   - Add a `Create New Episode` action from the Episodes screen.
+   - Let the user choose season, episode number, title, one-sentence story goal, brand metaphor, featured characters, locations, props, and target runtime.
+   - Use Gemini to generate a structured episode draft containing: logline, beginning/middle/end, 7-10 numbered scenes, natural spoken Burmese dialogue, visual direction, sound direction, continuity notes, and a cliffhanger.
+   - Provide separate actions: `Generate Draft`, `Regenerate Section`, `Edit`, `Save Draft`, `Approve Story`, and `Send To Production`.
+   - Every new episode starts as `Draft`; never silently promote AI output to Canon or Complete.
+   - Before approval, run Canon Guard against existing characters, locations, props, timeline, language rules, and brand rules.
+   - After `Approve Story`, automatically create the episode workspace, scene list, prompt package, clip checklist, assembly checklist, and QA checklist.
+   - Allow the user to edit the story manually before any video prompt is generated.
+   - Show a visible version history for episode drafts with timestamp, status, and change summary.
+
+8. **Production Queue**
+   - Add a queue showing every scene/clip that still needs work across all episodes.
+   - For each scene provide `Generate Prompt`, `Copy Prompt`, `Download Prompt`, `Mark Generated`, `Submit For Review`, `Approve Clip`, and `Needs Revision` actions.
+   - Use 10-second vertical `9:16` clips as the default production unit.
+   - Do not pretend to render a video if the app has no configured video-generation API. In that case, clearly label the item `Ready for Google Flow/Veo` and let the user upload the generated clip for review.
+   - If a supported server-side video API is configured, provide a real `Generate Video` action with loading, progress, retry, error, and output states. Keep all API keys server-side.
+   - Never put generated logos, opening titles, or end cards inside story clip prompts.
+
+9. **Video Finishing Studio**
+   - For any episode with approved clips, open a finishing workspace with a timeline/ordered list.
+   - Include official opening title card, approved story clips, optional black cut before the end card, and official BRAND001 end card.
+   - Allow upload of locally generated clips and official brand assets. Show thumbnails, duration, aspect ratio, resolution, audio-track presence, and approval state.
+   - Support reorder, remove, replace, trim start/end, and short audio crossfade settings. Use hard cuts or very short fades only.
+   - Validate clip order, missing clips, duplicate clips, 9:16 ratio, MP4 format, audio, readable exact brand text, and official end-card usage.
+   - Add `Build Final Video` and `Download Final Video` actions. If browser rendering is not available, generate a complete FFmpeg command or an export manifest and explain exactly what remains to run.
+   - Default export settings: MP4, H.264 video, AAC audio, `1080x1920`, original frame rate, target filename based on episode ID and title.
+   - Keep a `720x1280` result as an explicit resolution warning, never as a silent pass.
+   - After export, save a downloadable final QA report containing episode ID, clip order, checks, warnings, export settings, filename, duration, resolution, and SHA-256 when available.
+
+10. **Project Completion Flow**
+   - The main dashboard must show the next actionable step in this order: write story, approve story, prepare prompts, generate/upload clips, approve clips, assemble, run QA, export final video.
+   - A season is complete only when every episode has an approved story, approved clips, passed final QA, and a downloadable final video or explicitly accepted export exception.
+   - Add filters for `Needs My Action`, `Blocked`, `Ready For Flow`, `Ready For Assembly`, and `Complete`.
+   - Add a completion percentage based on real checklist states, not static placeholder numbers.
+
 ### Safety and data rules
 
 - Do not invent new canon facts silently.
@@ -102,6 +140,8 @@ Brand asset: `BRAND001` SocialAutoUpload End Card
 - For this first version, use local seeded state and localStorage so the app works immediately without authentication.
 - Add an Export Project JSON action and an Import Project JSON action so project state can be backed up.
 - Add a Reset Demo Data action with a confirmation dialog.
+- Add a `Project Completion` view showing incomplete episodes and the exact next action for each one.
+- Add a `Download Episode Package` action that exports story, prompts, clip checklist, assembly plan, and QA report as a JSON or Markdown bundle.
 
 ### Interaction quality
 
@@ -118,8 +158,17 @@ Brand asset: `BRAND001` SocialAutoUpload End Card
 - Use a small component structure with clear types for Episode, Asset, Clip, ChecklistItem, PromptDraft, and QAResult.
 - Keep all seeded data in one typed module.
 - Keep business rules in pure functions that can be tested independently.
+- Implement pure functions for episode completion percentage, next-action routing, Canon Guard checks, assembly validation, and export filename generation.
+- Keep episode drafts, approved stories, generated prompts, uploaded clip metadata, QA results, and final export metadata in separate typed records.
 - Do not add a database or authentication for the first version.
 - Make the app runnable immediately in AI Studio preview.
 - At the end, show a concise list of files created and how to run the app.
 
-Start by implementing the Dashboard, Episodes table, and S01E001 workspace first. Then implement Prompt Lab, Canon Guard, and Export JSON. Ensure the preview is functional before adding visual polish.
+Build in this order and keep each step functional before moving on:
+1. Dashboard, Episodes table, seeded S01E001 workspace, and localStorage persistence.
+2. Episode Writer for creating S01E003 and later episodes from structured drafts.
+3. Prompt Lab, Canon Guard, and Production Queue.
+4. Video Finishing Studio with upload, timeline validation, export manifest, and final QA report.
+5. Project JSON import/export and Download Episode Package.
+
+The app must remain useful when no Gemini or video API is configured: use deterministic demo data and clearly labeled mock generation, never fake a completed video export. Ensure the preview is functional before adding visual polish.
