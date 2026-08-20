@@ -1,0 +1,15 @@
+# macOS metadata
+.DS_Store
+
+# Editor and local environment files
+.vscode/
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated build artifacts
+*.log
